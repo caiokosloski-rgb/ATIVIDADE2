@@ -112,12 +112,26 @@ header {
     border-top: 1px solid #ddd;
     font-family: sans-serif;
 }
-
-.localizacao-conteudo {
-    display: inline-block; /* Mantém centralizado horizontalmente */
-    vertical-align: middle;
-    text-align: left; /* Alinha o texto para a esquerda dentro do bloco */
-}
-/* Customizando o texto que fica em cima do vídeo */
+Configurando a Fonte e o Estilo do Texto (CSS)
+PARANÁ
+CSS
+/* Customizando o texto que fica em cima do vídeo *
 .titulo-video {
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Define a fonte moderna
+font-size: 20px;
+/* Define o tamanho da Letra */
+font-weight: bold;
+/* Deixa o texto em negrito */
+color: #333333;
+/* Cor do texto (grafite escuro) */
+text-align: center;
+/* Centraliza o texto na tela */
+margin-bottom: 15px;
+/ Cria um espaço entre o texto e o video
+}
+</>
+CSS CASCADING STYLE SHEETS
+</>
+DESENVOLVIMENTO DE SISTEMAS
+EPT PARANA
