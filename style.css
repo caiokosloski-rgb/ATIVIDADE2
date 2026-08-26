@@ -44,21 +44,20 @@ header {
     padding-right: 30px;
 }
 
+
 .banner1 {
   width: 100%;
-  max-width: 800px; /* Limita a largura máxima para não ficar muito grande */
-  margin: 0 auto;    /* Centraliza o banner na página */
-  padding: 10px;
-  box-sizing: border-box;
+  height: 350px; /* Defina a altura exata que você quer para a área branca */
+  overflow: hidden;
 }
 
 .escola-imagem {
-  width: 100%;       /* Ocupa a largura do container */
-  height: auto;      /* Mantém a proporção da imagem sem distorcer */
-  display: block;
-  border-radius: 8px; /* Opcional: cantos arredondados */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Preenche todo o espaço sem distorcer o escudo */
+  object-position: center; /* Mantém o logo do Grêmio centralizado */
+  border-radius: 0; /* Remove cantos arredondados se houver */
 }
-
 .estudante_titulo {
     padding: 50px;
     text-align: center;
