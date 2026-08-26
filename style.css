@@ -45,8 +45,18 @@ header {
 }
 
 .banner1 {
-    display: flex;
-    justify-content: center;
+  width: 100%;
+  max-width: 800px; /* Limita a largura máxima para não ficar muito grande */
+  margin: 0 auto;    /* Centraliza o banner na página */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.escola-imagem {
+  width: 100%;       /* Ocupa a largura do container */
+  height: auto;      /* Mantém a proporção da imagem sem distorcer */
+  display: block;
+  border-radius: 8px; /* Opcional: cantos arredondados */
 }
 
 .estudante_titulo {
