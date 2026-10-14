@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home | ATIVIDADE</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!--header é a parte do cabeçalho do site, é o topo da página-->
+<header class="cabecalho-itens">
+<img class="cabecalho_imagem" src="ck.png" alt="Logo da
+Página">
+<h1 class="titulo_site">Caio Gabriel Kosloski</h1>
+<div class="sociais">
+<img class="sociais" src="whatsapp.png" alt="Logo do Whats da
+Escola">
+<img class="sociais" src="facebook.png" alt="Facebook da
+Escola">
+<img class="sociais" src="instagram.png" alt="instagram da
+Escola">
+<div class="dropdown dropdown2">
+    <button class="dropbtn">Dropdown Menu</button>
+    <div class="dropdown-content">
+      <a href="index.html">Inicio</a>
+      <a href="hino.html">Hino</a>
+      <a href="local.html">Localização</a>
+      <a href="jogos.html">Jogos</a>
+    </div>
+  </div>
+
+
+
+
+
+// Configuração do Canvas e Contexto
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+document.body.appendChild(canvas);
+
+// Ajusta o tamanho do canvas para preencher a tela ou a aba
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Estados do Jogo: 'MENU', 'PLAYING', 'PAUSED', 'GAME_OVER'
+let gameState = 'MENU';
+let score = 0;
+let highScore = localStorage.getItem('gremio_highscore') || 0;
+
+// Configurações do Jogador (Mosqueteiro / Escudo)
+const player = {
+    x: 0,
+    y: 0,
+    width: 60,
+    height: 60,
+    speed: 8,
+    color: '#00A8E8' // Azul Celeste do Grêmio
+};
+
+// Arrays para os objetos do jogo
+let items = [];
+const itemTypes = {
+    ESTRELA: { type: 'estrela', color: '#FFD700', points: 10, speedMin: 3, speedMax: 6 },
+    RIVAL: { type: 'rival', color: '#FF0000', points: 0, speedMin: 4, speedMax: 8 } // Obstáculo vermelho
+};
+
+// Controles do Teclado
+const keys = {};
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+// Inicializa ou reinicia as posições do jogo
+function initGame() {
+    player.x = canvas.width / 2 - player.width / 2;
+    player.y = canvas.height - player.height - 20;
+    items = [];
+    score = 0;
+}
+
+// Alternar modo Tela Cheia (Fullscreen)
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`Erro ao ativar fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Detectar cliques nos botões da interface
+window.addEventListener('click', (e) => {
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    // Se estiver no MENU
+    if (gameState === 'MENU') {
+        // Botão Jogar
+        if (mouseX > canvas.width / 2 - 100 && mouseX < canvas.width / 2 + 100 &&
+            mouseY > canvas.height / 2 - 25 && mouseY < canvas.height / 2 + 25) {
+            initGame();
+            gameState = 'PLAYING';
+        }
+        // Botão Fullscreen
+        if (mouseX > canvas.width / 2 - 100 && mouseX < canvas.width / 2 + 100 &&
+            mouseY > canvas.height / 2 + 50 && mouseY < canvas.height / 2 + 100) {
+            toggleFullscreen();
+        }
+    }
+    // Se estiver JOGANDO ou PAUSADO (Botões no topo superior direito)
+    else {
+        // Botão Pause / Resume (Canto superior direito)
+        if (mouseX > canvas.width - 120 && mouseX < canvas.width - 20 && mouseY > 20 && mouseY < 60) {
+            if (gameState === 'PLAYING') gameState = 'PAUSED';
+            else if (gameState === 'PAUSED') gameState = 'PLAYING';
+        }
+        // Botão Menu (Ao lado do pause)
+        if (mouseX > canvas.width - 230 && mouseX < canvas.width - 140 && mouseY > 20 && mouseY < 60) {
+            gameState = 'MENU';
+        }
+    }
+
+    // Se for GAME OVER e clicar na tela, volta ao menu
+    if (gameState === 'GAME_OVER') {
+        if (mouseY > canvas.height / 2 + 40 && mouseY < canvas.height / 2 + 100) {
+            gameState = 'MENU';
+        }
+    }
+});
+
+// Cria novos itens caindo do topo
+function spawnItem() {
+    if (gameState !== 'PLAYING') return;
+
+    const margin = 40;
+    const x = Math.random() * (canvas.width - margin * 2) + margin;
+    const isRival = Math.random() < 0.35; // 35% de chance de ser o obstáculo rival
+    const config = isRival ? itemTypes.RIVAL : itemTypes.ESTRELA;
+    
+    items.push({
+        x: x,
+        y: -30,
+        radius: 15,
+        config: config,
+        speed: Math.random() * (config.speedMax - config.speedMin) + config.speedMin
+    });
+
+    // Agenda o próximo item com tempo aleatório
+    setTimeout(spawnItem, Math.random() * 800 + 400);
+}
+
+// Atualiza a lógica dos elementos
+function update() {
+    if (gameState === 'PLAYING') {
+        // Movimentação do jogador (Setas ou A/D)
+        if (keys['ArrowLeft'] || keys['a'] || keys['A']) player.x -= player.speed;
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) player.x += player.speed;
+
+        // Limites da tela para o jogador
+        if (player.x < 0) player.x = 0;
+        if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
+        // Atualiza os itens caindo
+        for (let i = items.length - 1; i >= 0; i--) {
+            let item = items[i];
+            item.y += item.speed;
+
+            // Verificação de colisão com o jogador
+            const distX = Math.abs(item.x - (player.x + player.width / 2));
+            const distY = Math.abs(item.y - (player.y + player.height / 2));
+
+            if (distX < (player.width / 2 + item.radius) && distY < (player.height / 2 + item.radius)) {
+                if (item.config.type === 'estrela') {
+                    score += item.config.points;
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('gremio_highscore', highScore);
+                    }
+                } else if (item.config.type === 'rival') {
+                    gameState = 'GAME_OVER';
+                }
+                items.splice(i, 1);
+                continue;
+            }
+
+            // Remove itens que saíram da tela
+            if (item.y > canvas.height + 30) {
+                items.splice(i, 1);
+            }
+        }
+    }
+}
+
+// Desenha os gráficos na tela
+function draw() {
+    // Fundo de listras tricolor do Imortal (Azul, Preto e Branco)
+    ctx.fillStyle = '#00A8E8'; // Azul
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Desenha listras verticais pretas com bordas brancas para o tema do Grêmio
+    const stripeWidth = 60;
+    const gap = 120;
+    for (let x = 0; x < canvas.width; x += gap) {
+        ctx.fillStyle = '#FFFFFF'; // Linha branca de fundo
+        ctx.fillRect(x, 0, stripeWidth + 10, canvas.height);
+        ctx.fillStyle = '#000000'; // Linha preta interna
+        ctx.fillRect(x + 5, 0, stripeWidth, canvas.height);
+    }
+
+    // Camada escura suave por cima para dar legibilidade ao jogo
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (gameState === 'MENU') {
+        // Título do Jogo
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 42px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 6;
+        ctx.fillText('IMORTAL TRICOLOR RUN', canvas.width / 2, canvas.height / 3);
+        ctx.shadowBlur = 0;
+
+        // Botão Iniciar
+        ctx.fillStyle = '#00A8E8';
+        ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2 - 25, 200, 50);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.strokeRect(canvas.width / 2 - 100, canvas.height / 2 - 25, 200, 50);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '20px sans-serif';
+        ctx.fillText('JOGAR', canvas.width / 2, canvas.height / 2 + 7);
+
+        // Botão Fullscreen
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2 + 50, 200, 50);
+        ctx.strokeRect(canvas.width / 2 - 100, canvas.height / 2 + 50, 200, 50);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('TELA CHEIA', canvas.width / 2, canvas.height / 2 + 82);
+    }
+
+    if (gameState === 'PLAYING' || gameState === 'PAUSED' || gameState === 'GAME_OVER') {
+        // Desenha o jogador (Simbolizando o Escudo do Grêmio)
+        ctx.fillStyle = '#FFFFFF'; // Borda externa branca do escudo
+        ctx.beginPath();
+        ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = player.color; // Centro Azul Celeste
+        ctx.beginPath();
+        ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2 - 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Listra preta horizontal clássica no meio do escudo do jogador
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(player.x + 6, player.y + player.height/2 - 6, player.width - 12, 12);
+
+        // Desenha os itens caindo
+        items.forEach(item => {
+            ctx.fillStyle = item.config.color;
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+        });
+
+        // Placar de Pontos (Canto superior esquerdo)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Pontos: ${score}`, 20, 40);
+        ctx.font = '16px sans-serif';
+        ctx.fillText(`Recorde: ${highScore}`, 20, 65);
+
+        // Botão Pause / Resume (Superior Direito)
+        ctx.fillStyle = '#222';
+        ctx.fillRect(canvas.width - 120, 20, 100, 40);
+        ctx.strokeStyle = '#FFF';
+        ctx.strokeRect(canvas.width - 120, 20, 100, 40);
+        ctx.fillStyle = '#FFF';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(gameState === 'PAUSED' ? 'RETOMAR' : 'PAUSAR', canvas.width - 70, 45);
+
+        // Botão Menu (Superior Direito, ao lado do Pause)
+        ctx.fillStyle = '#222';
+        ctx.fillRect(canvas.width - 230, 20, 90, 40);
+        ctx.strokeRect(canvas.width - 230, 20, 90, 40);
+        ctx.fillStyle = '#FFF';
+        ctx.fillText('MENU', canvas.width - 185, 45);
+    }
+
+    if (gameState === 'PAUSED') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 40px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('JOGO PAUSADO', canvas.width / 2, canvas.height / 2);
+    }
+
+    if (gameState === 'GAME_OVER') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+
+ 
+ 
+ 
+
+
+        
+  <!--Seção rodapé é a parte final da paragrafo 3 da página-->
+<footer class="escola">
+<img class="logo_rodape" src="gremio.jpeg" alt="Logo da Escola">
+<h2 class="escola-título"><a class="link"
+
+href="https://wa.me/5541999999999">  </a></h2>
+<p></p>
+<p>©1983, 1995 e 2017 | DALE GREMIO| Todos os Direitos Reservados.
+Política de Privacidade | Proteção de dados | Encarregado de dados</p>
+<p> </p>
+</footer>
+</body>
+</html>
